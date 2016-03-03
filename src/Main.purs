@@ -1,27 +1,17 @@
 module Main where
 
-foreign import extractUrls :: String -> Array String
+foreign import data IRC :: !
+foreign import data Client :: *
+foreign import newClient :: forall e. String -> String -> {channels :: Array String} -> Eff (irc :: IRC | e) Client 
+foreign import addListener :: forall e e2. Client -> String -> Fn3 String String String (Eff e Unit) -> Eff (irc :: IRC | e2) Unit
+foreign import process :: forall e. Client -> String -> String -> String -> Eff (irc :: IRC | e) Unit
 
 import Prelude
 import Control.Bind
 import Control.Monad.Eff
 import Control.Monad.Eff.Console
-import Data.Foreign (readString)
-import Data.Identity
-import Node.Buffer (toString)
-import Node.Encoding (Encoding(UTF8))
-import Node.ChildProcess
-import Node.Stream
-
-handle :: forall w e. Writable w e -> Array String -> Eff e Unit 
-handle sin urls = do
-  writeString sin UTF8 "abc" do
-    end sin do
-      log "done"
+import Data.Function
 
 main = do
-  irc <- spawn "irc" ["irc.oftc.net", "#utdluggy", "luggy"] defaultSpawnOptions
-  onData (stdout irc) $ toString UTF8 >=> extractUrls >>> handle (stdin irc)
-  onExit irc \exit ->
-    case exit of
-      _ -> log $ show exit
+  c <- newClient "irc.oftc.net" "luggy" {channels: ["#utdlug"]}
+  addListener c "message" (mkFn3 \from to message -> (process c from to message))
