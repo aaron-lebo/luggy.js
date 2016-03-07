@@ -31,7 +31,7 @@ exports.addListener = function (client) {
     };
 };
 
-var pinboard = new Pinboard('utdlug:');
+var pinboard = new Pinboard(process.env.PINBOARD);
 
 exports.process = function (client) {
     return function(from) {
@@ -44,7 +44,7 @@ exports.process = function (client) {
                                 url = 'http://' + url;
                             }
                             request(url, function (err, res, body) {
-                                var title = cheerio.load(body || '')('title').text();
+                                var title = cheerio.load(body || '')('title').text().replace(new RegExp('\n', 'g'), '');;
                                 pinboard.add({
                                     url: url,
                                     description: title || url,
