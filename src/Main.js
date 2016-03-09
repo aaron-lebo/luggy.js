@@ -44,7 +44,7 @@ exports.process = function (client) {
                                 url = 'http://' + url;
                             }
                             request(url, function (err, res, body) {
-                                var title = cheerio.load(body || '')('title').text().replace(new RegExp('\n', 'g'), '');;
+                                var title = cheerio.load(body || '')('title').text().replace(new RegExp('\n', 'g'), '').trim();
                                 pinboard.add({
                                     url: url,
                                     description: title || url,
